@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Shorts Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0f;--surface:#1a1a1a;--border:#272727;
+  --text:#fff;--muted:#aaa;--sub:#717171;
+  --red:#ff0000;--accent:#3ea6ff;
+}
+body{background:var(--bg);color:var(--text);font-family:'Roboto',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+
+/* ── NAV ── */
+nav{width:100%;background:var(--bg);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:16px;height:56px;position:sticky;top:0;z-index:100;}
+.nav-logo{display:flex;align-items:center;gap:6px;text-decoration:none;}
+.nav-logo svg{width:90px;height:20px;}
+.nav-pill{margin-left:auto;display:flex;gap:8px;}
+.pill-btn{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:20px;padding:7px 16px;font-size:14px;cursor:pointer;transition:background .15s;}
+.pill-btn:hover{background:var(--border);}
+.pill-btn.active{background:var(--text);color:var(--bg);}
+
+/* ── PAGES ── */
+.page{display:none;width:100%;max-width:720px;padding:32px 20px 80px;}
+.page.active{display:block;}
+
+/* ── PAGE 1: INPUT FORM ── */
+.form-title{font-size:22px;font-weight:700;margin-bottom:6px;}
+.form-sub{font-size:13px;color:var(--sub);margin-bottom:32px;}
+
+.field{margin-bottom:22px;}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:500;letter-spacing:.3px;}
+.field input[type=text],
+.field textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Roboto',sans-serif;font-size:14px;outline:none;transition:border-color .2s;resize:none;}
+.field input[type=text]:focus,
+.field textarea:focus{border-color:#555;}
+.field textarea{height:80px;line-height:1.5;}
+
+/* upload areas */
+.upload-box{border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:var(--surface);position:relative;}
+.upload-box:hover,.upload-box.drag{border-color:#555;background:#222;}
+.upload-box input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.upload-icon{font-size:32px;margin-bottom:8px;}
+.upload-label{font-size:14px;color:var(--muted);}
+.upload-label span{color:var(--accent);font-weight:500;}
+.upload-hint{font-size:12px;color:var(--sub);margin-top:4px;}
+.preview-thumb{margin-top:14px;border-radius:10px;overflow:hidden;max-height:200px;display:none;}
+.preview-thumb video,.preview-thumb img{width:100%;object-fit:cover;display:block;max-height:200px;}
+.pp-preview{width:64px;height:64px;border-radius:50%;object-fit:cover;margin:10px auto 0;display:none;border:2px solid var(--border);}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+.submit-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:24px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s;margin-top:8px;letter-spacing:.3px;}
+.submit-btn:hover{opacity:.87;}
+
+/* ── PAGE 2: SHORTS PREVIEW ── */
+#page2{max-width:420px;padding:0;}
+.shorts-wrap{position:relative;width:100%;background:#000;border-radius:0;overflow:hidden;min-height:100vh;}
+
+/* video */
+.shorts-video{width:100%;height:100vh;object-fit:cover;display:block;}
+.shorts-video-placeholder{width:100%;height:100vh;background:linear-gradient(160deg,#111,#1a1a1a);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--sub);font-size:14px;}
+
+/* gradient overlays */
+.grad-top{position:absolute;top:0;left:0;right:0;height:120px;background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent);pointer-events:none;z-index:2;}
+.grad-bot{position:absolute;bottom:0;left:0;right:0;height:280px;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);pointer-events:none;z-index:2;}
+
+/* top bar */
+.shorts-topbar{position:absolute;top:0;left:0;right:0;z-index:5;padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.topbar-tab{font-size:16px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer;padding-bottom:6px;border-bottom:2px solid transparent;}
+.topbar-tab.active-tab{color:#fff;border-bottom-color:#fff;}
+.topbar-search{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;opacity:.9;}
+
+/* info bottom */
+.shorts-info{position:absolute;bottom:100px;left:0;z-index:5;padding:0 14px;max-width:calc(100% - 80px);}
+.acc-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.acc-pp{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #fff;flex-shrink:0;background:#333;}
+.acc-name{font-size:14px;font-weight:700;}
+.acc-sub-btn{background:#fff;color:#000;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;margin-left:6px;white-space:nowrap;}
+.shorts-title{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.4;}
+.shorts-caption{font-size:13px;color:rgba(255,255,255,.85);line-height:1.5;margin-bottom:6px;}
+.shorts-tags{font-size:13px;color:var(--accent);display:flex;flex-wrap:wrap;gap:6px;}
+.shorts-tags span{cursor:pointer;}
+.shorts-tags span:hover{text-decoration:underline;}
+
+/* right action bar */
+.shorts-actions{position:absolute;right:10px;bottom:110px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:18px;}
+.act-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;background:none;border:none;color:#fff;}
+.act-icon{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:22px;transition:background .15s,transform .1s;}
+.act-btn:hover .act-icon{background:rgba(255,255,255,.22);}
+.act-btn:active .act-icon{transform:scale(.9);}
+.act-label{font-size:12px;font-weight:500;}
+.act-btn.liked .act-icon{background:rgba(255,0,0,.25);}
+.act-btn.liked .act-icon svg path{fill:#ff4e4e;}
+
+/* comments sheet */
+.comments-sheet{position:absolute;bottom:0;left:0;right:0;background:#1a1a1a;border-radius:16px 16px 0 0;z-index:20;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:70vh;display:flex;flex-direction:column;}
+.comments-sheet.open{transform:translateY(0);}
+.sheet-header{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.sheet-title{font-size:15px;font-weight:700;}
+.sheet-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+.comments-list{overflow-y:auto;flex:1;padding:12px 16px;}
+.comment{display:flex;gap:10px;margin-bottom:18px;}
+.c-avatar{width:32px;height:32px;border-radius:50%;background:#333;flex-shrink:0;overflow:hidden;font-size:14px;display:flex;align-items:center;justify-content:center;color:#fff;}
+.c-body{flex:1;}
+.c-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.c-text{font-size:13px;color:rgba(255,255,255,.85);line-height:1.45;}
+.c-meta{font-size:11px;color:var(--sub);margin-top:4px;display:flex;gap:12px;align-items:center;}
+.c-like{background:none;border:none;color:var(--sub);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;}
+
+/* progress bar */
+.progress-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.2);z-index:10;}
+.progress-fill{height:100%;background:#fff;width:0%;transition:width .1s linear;}
+
+/* overlay close comments */
+.sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:15;display:none;}
+.sheet-overlay.show{display:block;}
+
+/* back btn */
+.back-to-input{position:absolute;top:60px;left:0;right:0;z-index:30;display:flex;justify-content:center;}
+
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">
+    <svg viewBox="0 0 90 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="26" height="20" rx="5" fill="#FF0000"/>
+      <polygon points="11,6 11,14 19,10" fill="white"/>
+      <text x="30" y="15" font-family="Roboto,sans-serif" font-size="14" font-weight="700" fill="white">Shorts</text>
+    </svg>
+  </a>
+  <div class="nav-pill">
+    <button class="pill-btn active" onclick="showPage(1)">① Input</button>
+    <button class="pill-btn" onclick="showPage(2)" id="previewBtn">② Preview</button>
+  </div>
+</nav>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<div class="page active" id="page1">
+  <div class="form-title">Buat Shorts Preview</div>
+  <div class="form-sub">Isi semua informasi di bawah, lalu lihat preview seperti YouTube Shorts asli.</div>
+
+  <!-- Video -->
+  <div class="field">
+    <label>📹 File Video</label>
+    <div class="upload-box" id="videoBox">
+      <input type="file" accept="video/*" id="videoFile" onchange="handleVideo(this)"/>
+      <div class="upload-icon">🎬</div>
+      <div class="upload-label"><span>Klik untuk pilih</span> atau drag & drop video</div>
+      <div class="upload-hint">MP4, MOV, WebM — rasio 9:16 direkomendasikan</div>
+    </div>
+    <div class="preview-thumb" id="videoThumb"><video id="thumbVid" muted></video></div>
+  </div>
+
+  <!-- Akun -->
+  <div class="row2">
+    <div class="field">
+      <label>👤 Nama Akun</label>
+      <input type="text" id="accName" placeholder="@namaakun" maxlength="40"/>
+    </div>
+    <div class="field">
+      <label>🖼️ Foto Profil (PP)</label>
+      <div class="upload-box" style="padding:16px;" id="ppBox">
+        <input type="file" accept="image/*" id="ppFile" onchange="handlePP(this)"/>
+        <div class="upload-label" style="font-size:12px;"><span>Upload PP</span></div>
+      </div>
+      <img class="pp-preview" id="ppPreview" src="" alt="PP"/>
+    </div>
+  </div>
+
+  <!-- Judul -->
+  <div class="field">
+    <label>📝 Judul Video</label>
+    <input type="text" id="vidTitle" placeholder="Judul shorts kamu..." maxlength="100"/>
+  </div>
+
+  <!-- Caption -->
+  <div class="field">
+    <label>💬 Caption</label>
+    <textarea id="vidCaption" placeholder="Tulis caption di sini..."></textarea>
+  </div>
+
+  <!-- Hashtag -->
+  <div class="field">
+    <label>🏷️ Hashtag</label>
+    <input type="text" id="vidHashtags" placeholder="#fyp #shorts #viral" maxlength="200"/>
+  </div>
+
+  <!-- Likes awal -->
+  <div class="row2">
+    <div class="field">
+      <label>❤️ Jumlah Like (awal)</label>
+      <input type="text" id="likeCount" placeholder="12.4K" maxlength="10"/>
+    </div>
+    <div class="field">
+      <label>💬 Jumlah Komentar</label>
+      <input type="text" id="commentCount" placeholder="348" maxlength="10"/>
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="goPreview()">▶ Lihat Preview Shorts</button>
+</div>
+
+<!-- ══════════════════ PAGE 2 ══════════════════ -->
+<div class="page" id="page2">
+  <div class="shorts-wrap" id="shortsWrap">
+
+    <!-- Video -->
+    <video class="shorts-video" id="shortsVid" loop playsinline autoplay muted style="display:none;" onclick="togglePlay()"></video>
+    <div class="shorts-video-placeholder" id="shortsPlaceholder">
+      <span style="font-size:40px;">🎬</span>
+      <span>Tidak ada video dipilih</span>
+    </div>
+
+    <!-- Gradients -->
+    <div class="grad-top"></div>
+    <div class="grad-bot"></div>
+
+    <!-- Top bar -->
+    <div class="shorts-topbar">
+      <div class="topbar-left">
+        <div class="topbar-tab">Beranda</div>
+        <div class="topbar-tab active-tab">Shorts</div>
+      </div>
+      <button class="topbar-search">🔍</button>
+    </div>
+
+    <!-- Info -->
+    <div class="shorts-info">
+      <div class="acc-row">
+        <img class="acc-pp" id="previewPP" src="" alt="PP"/>
+        <span class="acc-name" id="previewAccName">@akun</span>
+        <button class="acc-sub-btn">Langganan</button>
+      </div>
+      <div class="shorts-title" id="previewTitle">Judul shorts</div>
+      <div class="shorts-caption" id="previewCaption">Caption...</div>
+      <div class="shorts-tags" id="previewTags"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="shorts-actions">
+      <!-- Like -->
+      <button class="act-btn" id="likeBtn" onclick="toggleLike()">
+        <div class="act-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path id="heartPath" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="rgba(255,255,255,0.9)"/>
+          </svg>
+        </div>
+        <span class="act-label" id="likeLabel">0</span>
+      </button>
+
+      <!-- Komentar -->
+      <button class="act-btn" onclick="openComments()">
+        <div class="act-icon">💬</div>
+        <span class="act-label" id="commentLabel">0</span>
+      </button>
+
+      <!-- Share -->
+      <button class="act-btn" id="shareBtn" onclick="toggleShare()">
+        <div class="act-icon">↗️</div>
+        <span class="act-label" id="shareLabel">Bagikan</span>
+      </button>
+
+      <!-- More -->
+      <button class="act-btn">
+        <div class="act-icon">⋯</div>
+      </button>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+    <!-- Overlay -->
+    <div class="sheet-overlay" id="sheetOverlay" onclick="closeComments()"></div>
+
+    <!-- Comments Sheet -->
+    <div class="comments-sheet" id="commentsSheet">
+      <div class="sheet-header">
+        <span class="sheet-title">Komentar <span id="sheetComCount" style="color:var(--sub);font-weight:400;font-size:13px;"></span></span>
+        <button class="sheet-close" onclick="closeComments()">✕</button>
+      </div>
+      <div class="comments-list" id="commentsList"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── State ──
+let videoObjectUrl = null;
+let ppObjectUrl = null;
+let liked = false;
+let likeBase = 0;
+let shareCount = 0;
+let progressInterval = null;
+
+// ── Dummy comments ──
+const DUMMY_COMMENTS = [
+  {name:"@rizkifadhil_",avatar:"😎",text:"Bro ini kontennya 🔥🔥 terus berkarya ya!",time:"2 jam",likes:142},
+  {name:"@salsabilaaa",avatar:"🌸",text:"Aku suka banget sama konten ini, selalu bikin semangat pagi 😭❤️",time:"3 jam",likes:89},
+  {name:"@dimas.exe",avatar:"🤙",text:"Ini udah hari ke berapa upload tiap hari??? Konsisten banget bro",time:"5 jam",likes:67},
+  {name:"@nnrlfth",avatar:"✨",text:"Bisa collab gak kak?? 🙏🙏",time:"6 jam",likes:34},
+  {name:"@bagaswijaya99",avatar:"🎯",text:"Algoritmanya nge-boost banget ini, nemu dari beranda",time:"7 jam",likes:28},
+  {name:"@citra_content",avatar:"📱",text:"Tutorial bikinnya dong kak!! Keren parah",time:"8 jam",likes:55},
+  {name:"@hafizthegamer",avatar:"🎮",text:"Udah subscribe dari dulu, terus upload ya!",time:"10 jam",likes:19},
+  {name:"@lindarahayu",avatar:"🌺",text:"Kontennya relate banget sama keseharian aku 😂😂",time:"12 jam",likes:103},
+];
+
+// ── File handlers ──
+function handleVideo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+  videoObjectUrl = URL.createObjectURL(file);
+  const thumb = document.getElementById('videoThumb');
+  const vid = document.getElementById('thumbVid');
+  vid.src = videoObjectUrl;
+  thumb.style.display = 'block';
+}
+
+function handlePP(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (ppObjectUrl) URL.revokeObjectURL(ppObjectUrl);
+  ppObjectUrl = URL.createObjectURL(file);
+  const prev = document.getElementById('ppPreview');
+  prev.src = ppObjectUrl;
+  prev.style.display = 'block';
+}
+
+// ── Page switch ──
+function showPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.pill-btn').forEach((b,i) => {
+    b.classList.toggle('active', i === n-1);
+  });
+  document.getElementById('page'+n).classList.add('active');
+  if (n === 2) setupPreview();
+}
+
+function goPreview() {
+  showPage(2);
+}
+
+// ── Setup preview ──
+function setupPreview() {
+  // Video
+  const vid = document.getElementById('shortsVid');
+  const placeholder = document.getElementById('shortsPlaceholder');
+  if (videoObjectUrl) {
+    vid.src = videoObjectUrl;
+    vid.style.display = 'block';
+    placeholder.style.display = 'none';
+    vid.play().catch(()=>{});
+    startProgress(vid);
+  } else {
+    vid.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+
+  // PP
+  const pp = document.getElementById('previewPP');
+  pp.src = ppObjectUrl || '';
+  pp.style.background = ppObjectUrl ? 'transparent' : '#444';
+
+  // Text
+  const accName = document.getElementById('accName').value.trim() || '@akun';
+  document.getElementById('previewAccName').textContent = accName.startsWith('@') ? accName : '@'+accName;
+  document.getElementById('previewTitle').textContent = document.getElementById('vidTitle').value.trim() || 'Judul Shorts';
+  document.getElementById('previewCaption').textContent = document.getElementById('vidCaption').value.trim() || '';
+
+  // Hashtags
+  const tagsEl = document.getElementById('previewTags');
+  const raw = document.getElementById('vidHashtags').value.trim();
+  tagsEl.innerHTML = '';
+  if (raw) {
+    raw.split(/\s+/).forEach(tag => {
+      if (tag.startsWith('#')) {
+        const s = document.createElement('span');
+        s.textContent = tag;
+        tagsEl.appendChild(s);
+      }
+    });
+  }
+
+  // Counts
+  const likeVal = document.getElementById('likeCount').value.trim() || '0';
+  likeBase = parseHumanNum(likeVal);
+  liked = false;
+  document.getElementById('likeLabel').textContent = likeVal || '0';
+  document.getElementById('likeBtn').classList.remove('liked');
+  document.getElementById('heartPath').setAttribute('fill','rgba(255,255,255,0.9)');
+
+  const comVal = document.getElementById('commentCount').value.trim() || '0';
+  document.getElementById('commentLabel').textContent = comVal;
+  document.getElementById('sheetComCount').textContent = comVal;
+
+  shareCount = 0;
+  document.getElementById('shareLabel').textContent = 'Bagikan';
+
+  // Render dummy comments
+  renderComments();
+}
+
+function parseHumanNum(s) {
+  s = s.toUpperCase().replace(/,/g,'.');
+  if (s.endsWith('K')) return Math.round(parseFloat(s)*1000);
+  if (s.endsWith('M')) return Math.round(parseFloat(s)*1000000);
+  return parseInt(s)||0;
+}
+
+function formatNum(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1).replace('.0','')+'M';
+  if (n >= 1000) return (n/1000).toFixed(1).replace('.0','')+'K';
+  return n.toString();
+}
+
+// ── Like ──
+function toggleLike() {
+  liked = !liked;
+  const btn = document.getElementById('likeBtn');
+  const path = document.getElementById('heartPath');
+  const label = document.getElementById('likeLabel');
+  btn.classList.toggle('liked', liked);
+  path.setAttribute('fill', liked ? '#ff4e4e' : 'rgba(255,255,255,0.9)');
+  label.textContent = formatNum(likeBase + (liked ? 1 : 0));
+  btn.querySelector('.act-icon').style.transform = 'scale(1.25)';
+  setTimeout(() => { btn.querySelector('.act-icon').style.transform = ''; }, 180);
+}
+
+// ── Share ──
+function toggleShare() {
+  shareCount++;
+  document.getElementById('shareLabel').textContent = formatNum(shareCount);
+  const ic = document.getElementById('shareBtn').querySelector('.act-icon');
+  ic.style.transform = 'scale(1.25) rotate(-10deg)';
+  setTimeout(() => { ic.style.transform = ''; }, 200);
+}
+
+// ── Comments ──
+function openComments() {
+  document.getElementById('commentsSheet').classList.add('open');
+  document.getElementById('sheetOverlay').classList.add('show');
+}
+function closeComments() {
+  document.getElementById('commentsSheet').classList.remove('open');
+  document.getElementById('sheetOverlay').classList.remove('show');
+}
+
+function renderComments() {
+  const list = document.getElementById('commentsList');
+  list.innerHTML = DUMMY_COMMENTS.map(c => `
+    <div class="comment">
+      <div class="c-avatar">${c.avatar}</div>
+      <div class="c-body">
+        <div class="c-name">${c.name}</div>
+        <div class="c-text">${c.text}</div>
+        <div class="c-meta">
+          <span>${c.time} lalu</span>
+          <button class="c-like" onclick="this.textContent = (parseInt(this.dataset.n||'${c.likes}')+1)+' ❤️'; this.dataset.n=parseInt(this.dataset.n||'${c.likes}')+1;">
+            ${c.likes} ❤️
+          </button>
+          <span style="cursor:pointer;color:var(--sub)">Balas</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Play/Pause toggle ──
+function togglePlay() {
+  const vid = document.getElementById('shortsVid');
+  if (!vid.src) return;
+  vid.paused ? vid.play() : vid.pause();
+}
+
+// ── Progress bar ──
+function startProgress(vid) {
+  clearInterval(progressInterval);
+  const fill = document.getElementById('progressFill');
+  progressInterval = setInterval(() => {
+    if (vid.duration) fill.style.width = (vid.currentTime / vid.duration * 100) + '%';
+  }, 100);
+}
+
+// Drag & drop video box
+const vBox = document.getElementById('videoBox');
+vBox.addEventListener('dragover', e => { e.preventDefault(); vBox.classList.add('drag'); });
+vBox.addEventListener('dragleave', () => vBox.classList.remove('drag'));
+vBox.addEventListener('drop', e => {
+  e.preventDefault(); vBox.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('video/')) {
+    const dt = new DataTransfer(); dt.items.add(f);
+    document.getElementById('videoFile').files = dt.files;
+    handleVideo(document.getElementById('videoFile'));
+  }
+});
+</script>
+</body>
+</html>
