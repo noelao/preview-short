@@ -15,6 +15,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
             
             color: white;
             font-family: inter;
@@ -46,7 +47,7 @@
                 left: 0;
                 z-index: 1;
                 .sesuatu {
-                    height: 50%;
+                    /* height: 50%; */
                     width: 100%;
                     position: absolute;
                     bottom: 0;
@@ -77,7 +78,7 @@
                                 color: black;
                                 background-color: #fff;
                                 font-weight:600;
-                                padding: 8px 10px;
+                                padding: 8px 14px;
                                 font-size: .94rem;
                                 border-radius: 100px;
                             }
@@ -97,6 +98,7 @@
                         padding: 0 2px;
                         position: absolute;
                         right: 0;
+                        bottom: 346px;
                         svg {
                             fill: white;
                         }
@@ -131,20 +133,161 @@
                 }
             }
         }
+        .inputan {
+            width: 100%;
+            max-width: 1440px;
+            color: black;
+
+            display: flex;
+            flex-direction: column;
+
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+
+            h1 {
+                font-size: 1.5rem;
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+
+            label {
+                display: block;
+                margin: 1rem 0 0.5rem;
+                font-weight: 600;
+            }
+
+            /* Mengelompokkan input dan textarea */
+            input, textarea {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                box-sizing: border-box;
+
+                &:focus {
+                outline: 2px solid #007bff;
+                border-color: transparent;
+                }
+            }
+
+            textarea {
+                height: 100px;
+                resize: vertical;
+            }
+            
+        }
+    </style>
+
+    <style>
+        @media screen and (max-width: 480px) {
+            .container {
+                width: 100%;
+                .background {
+                    width: 100%;
+                    height: auto;
+                    img {
+                        width: 100%;
+                        height: auto;
+                    }
+                }
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="inputan">
+        <h1>inputan</h1>
+        <label for="video">masukkan video</label>
+        <input type="file" name="video" id="video" accept="video/*">
+        <label for="pp">masukkan pp(mungkin)</label>
+        <input type="file" name="pp" id="pp">
+        <label for="nama">masukkan nama(mungkin)</label>
+        <input type="text" placeholder="@noelao">
+        <label for="caption">masukkan caption(mungkin)</label>
+        <textarea name="caption" id="caption"></textarea>
+    </div>
     <div class="container">
         <div class="video">
+            <style>
+                #videoWrapper {
+                    width: 100%;
+                }
+                .duration-overlay {
+                    position: absolute;
+                    bottom: 15px;
+                    right: 15px;
+                    background: rgba(0, 0, 0, 0.6);
+                    color: white;
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                    font-size: 12px;
+                    pointer-events: none; /* Agar klik tetap tembus ke video */
+                }
+
+            </style>
+            <div id="videoWrapper">
+                <video id="myVideo" width="100%" loop>
+                    <source src="" type="video/mp4">
+                </video>            
+            </div>
+
+            <style>
+                .durationLine {
+                    width: 100%;
+                    height: 3px;
+                    background-color: #8d8d8d;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    position: absolute;
+                    bottom: -4px;
+                    .garisDurasi {
+                        position: absolute;
+                        left: 0;
+                        width: 0;
+                        height: 3px;
+                        background-color: red;
+                    }
+                    span {
+                        position: absolute;
+                        left: 0;
+                        background-color: red;
+                        width: 12px;
+                        aspect-ratio: 1;
+                        border-radius: 50%;
+                        transform: translateX(-50%);
+                    }
+                }
+            </style>
+            <div class="durationLine">
+                <div class="garisDurasi"></div>
+                <span class="bulatMerah"></span>
+            </div>
 
 
             <div class="sesuatu">
                 <div class="profile">
                     <div class="pp">
+                        <style>
+                            .foto {
+                                img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                    border-radius: 50%;
+                                }
+                            }
+                        </style>
                         <div class="foto">
-                            <img src="" alt="">
+                            <img src="profile.jpg" alt="">
                         </div>
-                        <small>@noaleo</small>
+                        <small>@elplongor</small>
                         <div class="subs">
                             <small>Subscribe</small>
                         </div>
@@ -175,8 +318,19 @@
                         <small>Remix</small>
                     </div>
                     <div class="sound">
+                        <style>
+                            .fotoan {
+                                overflow: hidden;
+                                border: solid white 1.3px;
+                                img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                }
+                            }
+                        </style>
                         <div class="fotoan">
-
+                            <img src="profile.jpg" alt="">
                         </div>
                     </div>
     
@@ -188,5 +342,57 @@
             <img src="Screenshot_2026-05-02-16-40-12-465_com.google.android.youtube.jpg" alt="">
         </div>
     </div>
+
+
+    <script>
+        const video = document.getElementById('myVideo');
+        const wrapper = document.getElementById('videoWrapper');
+        const timeDisplay = document.getElementById('timeDisplay');
+
+        // 1. Toggle Play/Pause saat diklik
+        wrapper.addEventListener('click', () => {
+        if (video.paused) {
+            video.play();
+        } else {
+            video.pause();
+        }
+        });
+
+
+        video.addEventListener('timeupdate', () => {
+            const durationLine = document.querySelector('.durationLine');
+            const garisDurasi = durationLine.querySelector('.garisDurasi');
+            const bulatMerah = durationLine.querySelector('.bulatMerah');
+
+            garisDurasi.style.width = `${(video.currentTime / video.duration) * 100}%`;
+            bulatMerah.style.left = `${(video.currentTime / video.duration) * 100}%`;
+        });
+
+    </script>
+
+    <!-- input -->
+    <script>
+        const inputVideo = document.getElementById('video');
+        const inputPp = document.getElementById('pp');
+        const inputNama = document.getElementById('nama');
+        const inputCaption = document.getElementById('caption');
+
+        inputVideo.addEventListener('change', function(event) {
+            // 1. Ambil file yang dipilih pengguna
+            const file = event.target.files[0];
+            
+            // 2. Pastikan file ada
+            if (file) {
+                // 3. Buat URL sementara untuk file tersebut
+                const videoUrl = URL.createObjectURL(file);
+                
+                // 4. Masukkan URL ke sumber video
+                video.src = videoUrl;
+                
+                // 5. Muat dan putar video
+                video.load();
+            }
+        });
+    </script>
 </body>
 </html>
