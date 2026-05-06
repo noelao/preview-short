@@ -209,6 +209,8 @@
         <input type="text" placeholder="@noelao">
         <label for="caption">masukkan caption(mungkin)</label>
         <textarea name="caption" id="caption"></textarea>
+        <label for="geser">geserKeatas ?</label>
+        <input type="number" name="geser" id="geser" placeholder="12">
     </div>
     <div class="container">
         <div class="video">
@@ -376,8 +378,10 @@
         const inputPp = document.getElementById('pp');
         const inputNama = document.getElementById('nama');
         const inputCaption = document.getElementById('caption');
+        const geserKeatas = document.getElementById('geser');
 
         inputVideo.addEventListener('change', function(event) {
+
             // 1. Ambil file yang dipilih pengguna
             const file = event.target.files[0];
             
@@ -392,6 +396,10 @@
                 // 5. Muat dan putar video
                 video.load();
             }
+        });
+
+        geserKeatas.addEventListener("keyup", function(){
+            document.querySelector(".video").style.top = (parseInt(geserKeatas.value) * -1 + 87) + "px";
         });
     </script>
 </body>
